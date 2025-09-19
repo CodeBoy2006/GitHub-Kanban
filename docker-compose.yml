@@ -24,6 +24,16 @@ services:
       # 传递给 fuck-u-code 的附加参数（可选），示例：--top 10 --issues 5 --summary
       - CODE_AUDIT_ARGS=${CODE_AUDIT_ARGS:---summary --top 10 --issues 5}
       - CODE_AUDIT_MAX_REPORTS=${CODE_AUDIT_MAX_REPORTS:-200}
+
+      # ---- AI 监工（新增） ----
+      - AI_REVIEW_ENABLED=${AI_REVIEW_ENABLED:-false}
+      - AI_REVIEW_API_URL=${AI_REVIEW_API_URL:-https://api.openai.com}
+      - AI_REVIEW_API_KEY=${AI_REVIEW_API_KEY:-}
+      - AI_REVIEW_MODEL=${AI_REVIEW_MODEL:-gpt-4o-mini}
+      - AI_REVIEW_MAX_FILES=${AI_REVIEW_MAX_FILES:-20}
+      - AI_REVIEW_MAX_CHANGES=${AI_REVIEW_MAX_CHANGES:-800}
+      - AI_REVIEW_DIFF_MAX_CHARS=${AI_REVIEW_DIFF_MAX_CHARS:-12000}
+      - AI_REVIEW_TIMEOUT_MS=${AI_REVIEW_TIMEOUT_MS:-20000}
     volumes:
       - audit-cache:/app/.audit  # 持久化克隆目录，减少后续拉取流量
 

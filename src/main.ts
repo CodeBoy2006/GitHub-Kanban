@@ -5,13 +5,16 @@ import { UpdateScheduler } from "./services/scheduler.ts";
 import { CodeAuditScheduler } from "./services/code_audit.ts";
 import { rebuildGlobalFeed } from "./services/feed.ts";
 import { makeHandler } from "./web/routes.ts";
+import { AIReviewer } from "./services/ai_review.ts"; // 新增
 
 async function main() {
     const cfg = await loadConfig();
     const store = new MemoryStore();
     const gh = new GitHubClient(cfg.githubToken);
 
-    const scheduler = new UpdateScheduler(cfg, store, gh);
+    const reviewer = new AIReviewer(cfg, store, gh); // 新增
+
+    const scheduler = new UpdateScheduler(cfg, store, gh, reviewer); // 传入 reviewer
     await scheduler.initialLoad();
 
     // 周期性重建队列（根据活跃度动态排序）

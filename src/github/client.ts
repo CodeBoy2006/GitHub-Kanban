@@ -15,6 +15,7 @@ export class GitHubClient {
         info: new Map(),
         events: new Map(),
         commits: new Map(),
+        diffs: new Map(), // 新增
     };
     private rate: RateLimitInfo = { limit: 5000, remaining: 5000, reset: 0 };
 
@@ -52,6 +53,42 @@ export class GitHubClient {
         const etag = res.headers.get("etag") ?? undefined;
         if (etag && etagKey) etagKey.map.set(etagKey.key, etag);
         return { status: 200 as const, data };
+    }
+
+    private async fetchTextWithEtag(
+        url: string,
+        etagKey?: { map: Map<string, string>; key: string },
+        accept?: string,
+    ): Promise<{ status: 200; data: string } | { status: 304 }> {
+        const hdrs: HeadersInit = {};
+        if (accept) (hdrs as Record<string, string>)["Accept"] = accept;
+        if (etagKey) {
+            const tag = etagKey.map.get(etagKey.key);
+            if (tag) (hdrs as Record<string, string>)["If-None-Match"] = tag;
+        }
+        const res = await fetch(url, { headers: ghHeaders(this.token, hdrs) });
+        this.updateRateLimit(res);
+        if (res.status === 304) return { status: 304 as const };
+        if (!res.ok) {
+            const text = await res.text().catch(() => "");
+            throw new Error(`${res.status} ${res.statusText} for ${url} :: ${text}`);
+        }
+        const data = await res.text();
+        const etag = res.headers.get("etag") ?? undefined;
+        if (etag && etagKey) etagKey.map.set(etagKey.key, etag);
+        return { status: 200 as const, data };
+    }
+
+    async getCommitDiff(repoId: string, sha: string): Promise<string | null> {
+        const key = `${repoId}@${sha}`;
+        const url = `https://api.github.com/repos/${repoId}/commits/${sha}`;
+        const out = await this.fetchTextWithEtag(
+            url,
+            { map: this.etags.diffs!, key },
+            "application/vnd.github.v3.diff",
+        );
+        if (out.status === 304) return null; // 已缓存，无需再次评审
+        return out.data;
     }
 
     async getRepoInfo(repoId: string) {

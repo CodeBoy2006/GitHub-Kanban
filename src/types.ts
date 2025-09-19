@@ -20,6 +20,16 @@ export type AppConfig = {
 
     // 可选：审计 CLI 名称（默认 "fuck-u-code" 与原实现兼容）
     codeAuditCli?: string;
+
+    // ---- AI Review ----
+    aiReviewEnabled?: boolean;
+    aiReviewApiUrl?: string;
+    aiReviewApiKey?: string;
+    aiReviewModel?: string;
+    aiReviewMaxFiles: number;       // 评审阈值：最多多少文件
+    aiReviewMaxChanges: number;     // 评审阈值：add+del
+    aiReviewDiffMaxChars: number;   // 评审阈值：diff 最大字符数
+    aiReviewTimeoutMs: number;      // API 超时
 };
 
 export type RateLimitInfo = { limit: number; remaining: number; reset: number };
@@ -43,6 +53,18 @@ export type CommitStats = {
     filesChanged: number;
 };
 
+export type CommitReview = {
+    repo: string;
+    sha: string;
+    grade: "good" | "mixed" | "bad";
+    score: 1 | 2 | 3;       // 3=良好, 2=一般, 1=存疑
+    summary: string;
+    risks: string[];
+    suggestions: string[];
+    createdAt: string;      // ISO
+    model: string;
+};
+
 export type FeedItem = {
     type: string;
     icon: string;
@@ -54,6 +76,7 @@ export type FeedItem = {
     extra?: string;
     sha?: string;
     stats?: CommitStats;
+    review?: CommitReview; // AI 评审（仅 commit）
     displayName?: string; // 汇总时附加
 };
 
@@ -70,6 +93,7 @@ export type ETagCache = {
     info: Map<string, string>;
     events: Map<string, string>;
     commits: Map<string, string>;
+    diffs?: Map<string, string>; // commit diff 的 ETag
 };
 
 // DataStore 接口，便于替换为持久化实现
@@ -79,4 +103,5 @@ export interface DataStore {
     feedItems: FeedItem[];
     commitStats: Map<string, CommitStats>;
     qualityReports: Map<string, QualityReport>;
+    commitReviews: Map<string, CommitReview>;
 }

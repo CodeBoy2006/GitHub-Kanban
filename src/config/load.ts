@@ -99,6 +99,16 @@ export async function loadConfig(): Promise<AppConfig> {
             Deno.env.get("CODE_AUDIT_CLI") ??
             (fileCfg.codeAuditCli as string | undefined) ??
             "fuck-u-code", // 与原实现保持一致
+
+        // ---- AI Review ----
+        aiReviewEnabled: (Deno.env.get("AI_REVIEW_ENABLED") ?? (fileCfg.aiReviewEnabled as string | undefined) ?? "false").toString().toLowerCase() === "true",
+        aiReviewApiUrl: Deno.env.get("AI_REVIEW_API_URL") ?? (fileCfg.aiReviewApiUrl as string | undefined),
+        aiReviewApiKey: Deno.env.get("AI_REVIEW_API_KEY") ?? (fileCfg.aiReviewApiKey as string | undefined),
+        aiReviewModel: Deno.env.get("AI_REVIEW_MODEL") ?? (fileCfg.aiReviewModel as string | undefined) ?? "gpt-4o-mini",
+        aiReviewMaxFiles: Number(Deno.env.get("AI_REVIEW_MAX_FILES") ?? (fileCfg.aiReviewMaxFiles as number | undefined) ?? 20),
+        aiReviewMaxChanges: Number(Deno.env.get("AI_REVIEW_MAX_CHANGES") ?? (fileCfg.aiReviewMaxChanges as number | undefined) ?? 800),
+        aiReviewDiffMaxChars: Number(Deno.env.get("AI_REVIEW_DIFF_MAX_CHARS") ?? (fileCfg.aiReviewDiffMaxChars as number | undefined) ?? 12000),
+        aiReviewTimeoutMs: Number(Deno.env.get("AI_REVIEW_TIMEOUT_MS") ?? (fileCfg.aiReviewTimeoutMs as number | undefined) ?? 20000),
     };
 
     if (!cfg.repos.length) {

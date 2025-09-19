@@ -97,7 +97,8 @@ export function rebuildGlobalFeed(cfg: AppConfig, store: DataStore) {
         if (item.type === "Commit" && item.sha) {
             const key = `${item.repo}@${item.sha}`;
             const cached = store.commitStats.get(key) as CommitStats | undefined;
-            return cached ? { ...item, stats: cached } : item;
+            const review = store.commitReviews.get(key);
+            return { ...(cached ? { ...item, stats: cached } : item), ...(review ? { review } : {}) };
         }
         return item;
     };

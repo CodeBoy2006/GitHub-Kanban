@@ -20,11 +20,14 @@ export function makeHandler(cfg: AppConfig, store: DataStore) {
         }
 
         if (pathname === "/api/feed") {
-            // 确保 Commit 带上最新缓存的 stats（幂等）
             const items = store.feedItems.map((it) => {
                 if (it.type === "Commit" && it.sha) {
                     const cached = store.commitStats.get(`${it.repo}@${it.sha}`);
-                    return cached ? { ...it, stats: cached } : it;
+                    const review = store.commitReviews.get(`${it.repo}@${it.sha}`);
+                    return {
+                        ...(cached ? { ...it, stats: cached } : it),
+                        ...(review ? { review } : {}),
+                    };
                 }
                 return it;
             });

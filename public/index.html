@@ -369,7 +369,18 @@
               }</span> lines
       </div>`;
             }
-            return base + statLine + `</div></div>`;
+
+            let reviewLine = "";
+            if (it.type === "Commit" && it.review) {
+              const badge = it.review.score === 3 ? "🟢 良好"
+                            : it.review.score === 2 ? "🟡 一般"
+                            : "🔴 存疑";
+              reviewLine = `<div class="mono small" style="margin-top:4px">
+              <strong>AI 监工：</strong>${badge} — ${esc(it.review.summary || "")}
+            </div>`;
+            }
+
+            return base + statLine + reviewLine + `</div></div>`;
           })
           .join("");
       }

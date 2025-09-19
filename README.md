@@ -14,6 +14,7 @@
 - **零配置前端**：所有配置均通过后端的 `.env` 文件管理，前端开箱即用。
 - **智能排序**：仓库概览和后端更新队列均按最近活动 (`updated_at`) 自动排序。
 - **亮/暗模式**：自动适配你的系统主题。
+- **AI 监工**：自动对小型提交进行代码评审，提供三档评分（良好/一般/存疑）和改进建议。
 
 ## 🚀 快速开始 (Docker)
 
@@ -68,3 +69,16 @@
 | `HOST_PORT`                    | 映射到主机的端口号。                                                  | `8080`                                              |
 | `CONTAINER_PORT`               | 容器内部应用监听的端口，应与 `PORT` 环境变量保持一致。                  | `8000`                                              |
 | `TZ`                           | （可选）设置容器的显示时区。                                            | `Asia/Shanghai`                                     |
+
+### AI 监工配置
+
+| 变量 | 说明 | 示例 |
+|---|---|---|
+| `AI_REVIEW_ENABLED` | 开启 AI 监工 | `true` |
+| `AI_REVIEW_API_URL` | OpenAI 兼容服务根地址 | `https://api.openai.com` |
+| `AI_REVIEW_API_KEY` | 访问密钥 | `sk-...` |
+| `AI_REVIEW_MODEL` | 模型名 | `gpt-4o-mini` |
+| `AI_REVIEW_MAX_FILES` | 触发评审的最大文件数 | `20` |
+| `AI_REVIEW_MAX_CHANGES` | 触发评审的最大变更行（加删总数） | `800` |
+| `AI_REVIEW_DIFF_MAX_CHARS` | 发送给模型的 diff 最大字符数 | `12000` |
+| `AI_REVIEW_TIMEOUT_MS` | 请求超时 | `20000` |

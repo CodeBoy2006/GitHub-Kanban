@@ -1,4 +1,4 @@
-import { CommitStats, DataStore, FeedItem, QualityReport, RepoInfo } from "../types.ts";
+import { CommitStats, DataStore, FeedItem, QualityReport, RepoInfo, CommitReview } from "../types.ts";
 
 export class MemoryStore implements DataStore {
     repoInfos = new Map<string, RepoInfo>();
@@ -6,4 +6,5 @@ export class MemoryStore implements DataStore {
     feedItems: FeedItem[] = [];
     commitStats = new Map<string, CommitStats>();
     qualityReports = new Map<string, QualityReport>();
+    commitReviews = new Map<string, CommitReview>(); // 新增
 }

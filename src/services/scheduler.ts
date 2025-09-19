@@ -1,6 +1,7 @@
 import { AppConfig, ConfigRepo, DataStore } from "../types.ts";
 import { GitHubClient } from "../github/client.ts";
 import { rebuildGlobalFeed } from "./feed.ts";
+import { AIReviewer } from "./ai_review.ts"; // 新增
 
 export class UpdateScheduler {
     private queue: ConfigRepo[] = [];
@@ -10,6 +11,7 @@ export class UpdateScheduler {
         private cfg: AppConfig,
         private store: DataStore,
         private gh: GitHubClient,
+        private reviewer?: AIReviewer, // 新增
     ) { }
 
     async initialLoad() {
@@ -75,11 +77,15 @@ export class UpdateScheduler {
                     this.store.repoEvents.set(repo.id, events);
                 }
 
-                // 预取最近 commit 的统计，避免请求风暴
+                // 预取最近 commit 的统计 & 提取 message
                 const commits: string[] = [];
+                const msgMap = new Map<string, string>();
                 for (const ev of events) {
                     if (ev.type === "PushEvent" && ev.payload?.commits) {
-                        for (const c of ev.payload.commits) commits.push(c.sha);
+                        for (const c of ev.payload.commits) {
+                            commits.push(c.sha);
+                            if (c.sha && c.message) msgMap.set(c.sha, c.message);
+                        }
                     }
                 }
                 const toFetch = commits
@@ -97,6 +103,14 @@ export class UpdateScheduler {
                         console.warn(`[Update] ⚠️ Commit stat failed (${repo.id}@${toFetch[i]}):`, s.reason);
                     }
                 });
+
+                // 触发 AI 评审（仅小提交）
+                if (this.reviewer) {
+                    const reviewable = toFetch.slice(0, 2); // 每轮最多评审 2 个，避免成本陡增
+                    await Promise.allSettled(reviewable.map((sha) =>
+                        this.reviewer!.reviewCommit(repo.id, sha, msgMap.get(sha) ?? undefined)
+                    ));
+                }
             } else if (eventsRes.status === "rejected") {
                 console.error(`[Update] ❌ Events failed for ${repo.name}:`, eventsRes.reason);
             }
