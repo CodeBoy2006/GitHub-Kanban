@@ -5,7 +5,7 @@ ENV CGO_ENABLED=0 GO111MODULE=on GOBIN=/out
 RUN go install github.com/Done-0/fuck-u-code/cmd/fuck-u-code@latest
 
 # ---- Stage 2: app runtime ----
-FROM denoland/deno:alpine-1.46.3
+FROM denoland/deno:alpine
 
 # basic tools
 RUN apk add --no-cache git ca-certificates bash && update-ca-certificates
@@ -23,7 +23,10 @@ COPY . .
 ENV PORT=8000
 EXPOSE 8000
 
-# cache deps (可选)
-# RUN deno cache src/server.ts
+# cache deps
+RUN deno cache src/main.ts
 
-CMD ["deno", "run", "-A", "--no-lock", "src/server.ts"]
+RUN mkdir -p /app/.audit/repos \
+    && chown -R deno:deno /app
+
+CMD ["deno", "run", "-A", "--no-lock", "src/main.ts"]
